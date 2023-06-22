@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Asset Trips Map</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container mt-5">
+        <h2>Select an Asset</h2>
+        <form action="/load_rangedata" method="POST" class="form-inline">
+            <div class="form-group">
+                <select name="assetid" class="form-control">
+                    {% for assetid in assetids %}
+                        {% if selected_assetid == assetid %}
+                            <option value="{{ assetid }}" selected>{{ assetid }}</option>
+                        {% else %}
+                            <option value="{{ assetid }}">{{ assetid }}</option>
+                        {% endif %}
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit" class="btn btn-success">Load Trips</button>
+        </form>
+          
+        {%if inicio%}
+        {%if fim%}
+        <h5>{{ inicio }}</h5>
+        <h5>{{ fim }}</h5>
+
+        {%endif%}
+        {%endif%}
+        <head>
+            <title>Calendário com datas disponíveis</title>
+            <style>
+              .available {
+                color: green;
+                cursor: pointer;
+              }
+              .unavailable {
+                color: red;
+                cursor: not-allowed;
+              }
+            </style>
+          </head>
+          <body>
+            <h1>Calendário</h1>
+            <form id="calendarioForm" action="load_data" method="post">
+              <input type="hidden" name="data_selecionada" id="data_selecionada">
+              <table>
+                <thead>
+                  <tr>
+                    <th colspan="7">
+                        <button id="botao_mes_anterior" onclick="mudarMes(-1, event)">Mês Anterior</button>
+                        <span id="mes_atual"></span>
+                        <button id="botao_proximo_mes" onclick="mudarMes(1, event)">Próximo Mês</button>
+                        
+                 
+                    </th>
+                  </tr>
+                  <tr>
+                    <th>Domingo</th>
+                    <th>Segunda</th>
+                    <th>Terça</th>
+                    <th>Quarta</th>
+                    <th>Quinta</th>
+                    <th>Sexta</th>
+                    <th>Sábado</th>
+                  </tr>
+                </thead>
+                <tbody id="calendario">
+                  <!-- Aqui o JavaScript irá gerar as células do calendário -->
+                </tbody>
+              </table>
+              <button type="button" id="submit_btn" disabled onclick="submeterFormulario()">Enviar</button>
+            </form>
+          
+            <script>
+                // Função para obter a data atual no formato "yyyy-mm-dd"
+            function getDataAtual() {
+                var hoje = new Date();
+                var dia = hoje.getDate();
+                var mes = hoje.getMonth() + 1; // Os meses são indexados em 0
+                var ano = hoje.getFullYear();
+            
+                if (dia < 10) {
+                dia = '0' + dia;
+                }
+            
+                if (mes < 10) {
+                mes = '0' + mes;
+                }
+            
+                return ano + '-' + mes + '-' + dia;
+            }
+              
+                // Datas disponíveis da lista em Python (no formato "yyyy-mm-dd")
+                {% if dts %}
+                var disponiveis = {{ dts | tojson }};
+                {% else %}
+                var disponiveis = [];
+                {% endif %}
+              
+                // Função para filtrar as datas disponíveis dentro dos últimos 30 dias
+                function filtrarDatasDisponiveis() {
+                  var datasFiltradas = [];
+                  var dataAtual = new Date();
+                  var ultimoDia = new Date();
+              
+                  dataAtual.setDate(dataAtual.getDate() - 29); // Subtrai 29 dias da data atual
+              
+                  while (dataAtual <= ultimoDia) {
+                    var dataFormatada = dataAtual.toISOString().slice(0, 10);
+              
+                    if (disponiveis.includes(dataFormatada)) {
+                      datasFiltradas.push(dataFormatada);
+                    }
+              
+                    dataAtual.setDate(dataAtual.getDate() + 1);
+                  }
+              
+                  return datasFiltradas;
+                }
+              
+                // Função para gerar o calendário
+                function gerarCalendario(dataAtual) {
+                  var calendario = document.getElementById("calendario");
+                  var dataAtualObj = new Date(dataAtual);
+              
+                  // Primeiro dia do mês atual
+                  var primeiroDia = new Date(dataAtualObj.getFullYear(), dataAtualObj.getMonth(), 1);
+                  var primeiroDiaSemana = primeiroDia.getDay(); // 0 (Domingo) a 6 (Sábado)
+              
+                  // Último dia do mês atual
+                  var ultimoDia = new Date(dataAtualObj.getFullYear(), dataAtualObj.getMonth() + 1, 0);
+                  var ultimoDiaMes = ultimoDia.getDate();
+              
+                  var dia = 1;
+                  var diasProximaSemana = 7 - primeiroDiaSemana;
+              
+                  // Limpa o calendário anterior, se houver
+                  calendario.innerHTML = "";
+              
+                  // Define o mês e o ano atual no cabeçalho
+                  var mesAtual = primeiroDia.toLocaleString('default', { month: 'long', year: 'numeric' });
+                  document.getElementById("mes_atual").innerHTML = mesAtual;
+              
+                  // Filtra as datas disponíveis dentro dos últimos 30 dias
+                  var datasDisponiveis = filtrarDatasDisponiveis();
+              
+                  // Cria as células do calendário
+                  for (var i = 0; i < 6; i++) {
+                    var semana = document.createElement("tr");
+              
+                    for (var j = 0; j < 7; j++) {
+                      var celula = document.createElement("td");
+              
+                      if ((i === 0 && j < primeiroDiaSemana) || dia > ultimoDiaMes) {
+                        celula.innerHTML = "&nbsp;";
+                      } else {
+                        var data = new Date(dataAtualObj.getFullYear(), dataAtualObj.getMonth(), dia);
+                        var dataFormatada = data.toISOString().slice(0, 10);
+              
+                        if (datasDisponiveis.includes(dataFormatada)) {
+                          celula.innerHTML = "<span class='available'>" + dia + "</span>";
+                          celula.setAttribute("data-data", dataFormatada);
+                          celula.addEventListener("click", selecionarData);
+                        } else {
+                          celula.innerHTML = "<span class='unavailable'>" + dia + "</span>";
+                          celula.classList.add("disabled");
+                        }
+              
+                        dia++;
+                      }
+              
+                      semana.appendChild(celula);
+                    }
+              
+                    calendario.appendChild(semana);
+              
+                    if (dia > ultimoDiaMes) {
+                      break;
+                    }
+                  }
+              
+                  // Atualiza a exibição dos botões de mês anterior e próximo mês
+                  var botaoMesAnterior = document.getElementById("botao_mes_anterior");
+                  var botaoProximoMes = document.getElementById("botao_proximo_mes");
+              
+                  if (dataAtualObj.getMonth() === new Date().getMonth()) {
+                    botaoMesAnterior.style.display = "inline-block";
+                    botaoProximoMes.style.display = "none";
+                  } else {
+                    botaoMesAnterior.style.display = "none";
+                    botaoProximoMes.style.display = "inline-block";
+                  }
+                }
+              
+                // Função para selecionar uma data
+                function selecionarData() {
+                  if (this.classList.contains("disabled")) {
+                    return;
+                  }
+              
+                  var dataSelecionada = this.getAttribute("data-data");
+                  document.getElementById("data_selecionada").value = dataSelecionada;
+                  document.getElementById("submit_btn").disabled = false;
+                }
+              
+                // Função para submeter o formulário
+                function submeterFormulario() {
+                  document.getElementById("calendarioForm").submit();
+                }
+              
+                function mudarMes(valor, event) {
+                    event.preventDefault();
+                    var dataAtual = new Date(document.getElementById("mes_atual").innerHTML);
+                    dataAtual.setMonth(dataAtual.getMonth() + valor);
+                    
+                    // Ajuste para verificar se a data atual é maior do que a data atual do sistema
+                    var dataAtualSistema = new Date();
+                    if (valor == 1) {
+                      dataAtual = dataAtualSistema
+                    }
+                    
+                    dataAtual.setDate(1); // Define o dia como o primeiro dia do mês atual
+                    gerarCalendario(dataAtual);
+                  }
+                  
+                  
+              
+                // Gera o calendário inicial
+                gerarCalendario(new Date());
+              </script>
+              
+          </body>
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        <h2>Selecione a viagem</h2>
+        <table class="table table-bordered table-hover" >
+            <tr>
+              <th>Inicio da Viagem</th>
+              <th>Final da Viagem</th>
+            </tr>
+            {% for data in datass %}
+            {% set data1, data2 = data %}
+            <tr>
+              <td>{{ data1 }}</td>
+              <td>{{ data2 }}</td>
+                    
+              <td>
+                <form action="/map" method="POST" class="form-inline">
+                <input type="hidden" name="assetid" value="{{ selected_assetid }}">
+                <input type="hidden" name="sdata" value="{{ selected_data }}">
+                
+                  <input type="hidden" name="data1" value="{{ data1}}">
+                  <input type="hidden" name="data2" value="{{ data2}}">
+                  <button type="submit" class="btn btn-outline-danger">showmap</button>
+                </form>
+              </td>
+            </tr>
+            {% endfor %}
+          </table>
+          
+          {% if erro %}
+          
+          <div class="alert alert-danger" role="alert">
+            <h5>{{ message }}</h5>
+          </div>
+          <input type="hidden" name="assetid" value="{{ selected_assetid }}">
+          <input type="hidden" name="sdata" value="{{ selected_data }}">
+          <h2>Select a data</h2>
+        <table class="table table-bordered table-hover" >
+            <tr>
+              <th>Inicio da Viagem</th>
+              <th>Final da Viagem</th>
+            </tr>
+            {% for data in datass %}
+            {% set data1, data2 = data %}
+            <tr>
+              <td>{{ data1 }}</td>
+              <td>{{ data2 }}</td>
+                   
+              <td>
+                <form action="/map" method="POST" class="form-inline">
+                <input type="hidden" name="assetid" value="{{ selected_assetid }}">
+                <input type="hidden" name="sdata" value="{{ selected_data }}">
+                
+                  <input type="hidden" name="data1" value="{{ data1}}">
+                  <input type="hidden" name="data2" value="{{ data2}}">
+                  <button type="submit" class="btn btn-outline-danger">showmap</button>
+                </form>
+              </td>
+            </tr>
+            {% endfor %}
+          </table>
+                
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          {%endif%}
+        
+          {% if entrada %}
+          <h2>map</h2>
+          <table class="table table-bordered table-hover" >
+              <tr>
+                <th>dtinicio </th>
+                <th>ldtfinalng</th>
+                <th>lat</th>
+                <th>long</th>
+              </tr>
+            <td>{{ data_formatada1 }}</td>
+            <td>{{ data_formatada2 }}</td>
+            <td></td>
+            <input type="hidden" name="dt" value="{{ data_formatada1}}">
+            <input type="hidden" name="dt" value="{{ data_formatada2}}">
+            <td></td>
+              {% for local in cordinates %}
+              {% set lat, long = local %}
+          
+              <tr>
+                <td>{{ lat }}</td>
+                <td>{{ long }}</td>
+                
+                      
+                <td>
+                  <form action="/map" method="POST" class="form-inline">
+                  <input type="hidden" name="assetid" value="{{ selected_assetid }}">
+                  
+                    <input type="hidden" name="lat" value="{{ lat}}">
+                    <input type="hidden" name="long" value="{{ long}}">
+                    
+                    <button type="submit" class="btn btn-outline-danger">showmap</button>
+                  </form>
+                </td>
+              </tr>
+              {% endfor %}
+            </table>
+            {%endif%}
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+          {% if tripids %}
+            <h2>Select a Trip</h2>
+            <form action="/map" method="POST" class="form-inline">
+                <input type="hidden" name="assetid" value="{{ selected_assetid }}">
+                <div class="form-group">
+                    <select name="tripid" class="form-control">
+                        {% for tripid in tripids %}
+                            <option value="{{ tripid }}">{{ tripid }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary">Show Map</button>
+            </form>
+        {% endif %}
+    </div>
+
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
+
+    
+</body>
+</html>
