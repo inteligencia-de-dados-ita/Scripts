@@ -6,7 +6,7 @@
 </head>
 <body>
     <div class="container mt-5">
-        <h2>Selecione o Veículo</h2>
+        <h2>Select an Asset</h2>
         <form action="/load_rangedata" method="POST" class="form-inline">
             <div class="form-group">
                 <select name="assetid" class="form-control">
@@ -19,37 +19,39 @@
                     {% endfor %}
                 </select>
             </div>
-            <button type="submit" class="btn btn-dark">Carregar Veículo</button>
+            <button type="submit" class="btn btn-success">Load Trips</button>
         </form>
           
+        {%if inicio%}
+        {%if fim%}
+        {%if dts%}
+        <h5>{{ inicio }}</h5>
+        <h5>{{ fim }}</h5>
+        <h5>{{ dts }}</h5>
+        {%endif%}
+        {%endif%}
+        {%endif%}
         <head>
             <title>Calendário com datas disponíveis</title>
             <style>
-                .item-calendario:has(.available):hover{
-                    background-color: purple;
+              .item-calendario:hover {
+                    background-color: grey; 
                     cursor: pointer;
                   }
-               
-                 
                 .sumir {
-                opacity: 0.1; /* Define a opacidade para deixar o botão apagado */
+                opacity: 0.5; /* Define a opacidade para deixar o botão apagado */
                 pointer-events: none; /* Impede que o botão seja clicado */
                 cursor: not-allowed;
                 }
             
                   
               .available {
-                color: black;
-                font-weight: bold;
+                color: green;
                 cursor: pointer;
               }
               .unavailable {
-                color: #5E5E5E;
-                opacity: 0.4;
+                color: red;
                 cursor: not-allowed;
-              }
-              .item-calendario:not(:has(.available)) {
-              cursor: not-allowed;
               }
               
               #calendario td {
@@ -76,38 +78,27 @@
              
               #mes_atual {
                 text-align: center;
-                font-weight: bold;
-                font-family: 'Playfair Display', serif;
-                font-size: 25px;
+
               }
               #botao_mes_anterior{
 
               }
               .sticky-buttons #botao_proximo_mes{
-                background-color: black;
+                background-color: green;
                 float: right;
                 margin: 0;
 
               }
               .sticky-buttons #botao_mes_anterior{
-                background-color: black;
+                background-color: red;
                 float: left;
                 margin 0;
                 
               }
-              .sticky-buttons{
-                background-color: #5E5E5E;
-              }
-              thead #prox{
-                color:white;
-              }
-              thead #ant{
-                color:white;
-              }
             </style>
           </head>
           <body>
-            <h2>Selecione a Data Desejada</h2>
+            <h1>Calendário</h1>
             <form id="calendarioForm" action="load_data" method="post">
               <input type="hidden" name="data_selecionada" id="data_selecionada">
               <input type="hidden" name="assetid" value="{{ selected_assetid }}">
@@ -115,8 +106,8 @@
                 <thead>
                   <tr>
                     <th class='sticky-buttons' colspan="7">
-                        <button id="botao_mes_anterior" onclick="mudarMes(-1, event)"><h7 id="ant">Mês Anterior</h7></button>
-                        <button id="botao_proximo_mes" onclick="mudarMes(1, event)"><h7 id="prox">Próximo Mês</h7></button>
+                        <button id="botao_mes_anterior" onclick="mudarMes(-1, event)">Mês Anterior</button>
+                        <button id="botao_proximo_mes" onclick="mudarMes(1, event)">Próximo Mês</button>
                         <h5 id="mes_atual"></h5>
                         
                         
@@ -318,145 +309,49 @@
               </script>
               
           </body>
-          
-
-          <h2>Selecione a viagem</h2>
-<table id="viagemTable" class="table-light table-bordered table-hover">
-  <tr>
-    <th>
-        Início da Viagem
-     
-    <a href="#" class="triangle-filter-down" onclick="handleFilterClick(this, 'down')">
-</a></th>
-    <th>
-        Final da Viagem
-     
-    <a href="#" class="triangle-filter-up" onclick="handleFilterClick(this, 'up')">
-</a></th>
-    <th>Visualizar mapa</th>
-  </tr>
-  {% for data in datas1 %}
-  {% set data1, data2 = data %}
-
-  <tr>
-    <td>{{ data1 }}</td>
-    <td>{{ data2 }}</td>
-    <td>
-      <form action="/map" method="POST" class="form-inline">
-        <input type="hidden" name="assetid" value="{{ selected_assetid }}">
-        <input type="hidden" name="data_selecionada" value="{{ selected_data }}">
-        <input type="hidden" name="data1" value="{{ data1 }}">
-        <input type="hidden" name="data2" value="{{ data2 }}">
-        <button type="submit" class="btn btn-warning">showmap</button>
-      </form>
-    </td>
-  </tr>
-  {% endfor %}
-</table>
-
-<style>
-   table th{
-    background-color: #5E5E5E;
-   }
-    #viagemTable th {
-        color: white;
-        background-color: black;
-        padding-left: 110px;
-        padding-right: 90px; 
-    }
-    th .triangle-filter-down,
-    th .triangle-filter-up {
-        position: absolute;
-        padding-top: 15px;
-    }
-    th .triangle-filter-down {
-        width: 10;
-        height: 0;
-        border-left: 15px solid transparent;
-        border-right: 0px solid transparent;
-        border-bottom: 10px solid #FFCC00;
-      }
-      th .triangle-filter-up {
-        width: 10;
-        height: 0;
-        border-left: 15px solid transparent;
-        border-right: 20 px solid transparent;
-        border-top: 10px solid #FFCC00;
-      }
-      table td{
-        text-align: center;
-        color: black;
-        font-weight: bold;
-      }
-     
-
-     
-      
-</style>
-
-<script>
-  function handleFilterClick(element, filter) {
-    var viagemTable = document.getElementById("viagemTable");
-    var datass;
     
-    if (filter === "down") {
-      element.classList.remove("triangle-filter-down");
-      element.classList.add("triangle-filter-up");
-      {% if datas1 %}
-      datass = {{ datas1 | tojson }};
-      {% else %}
-      datass = [];
-      {% endif %}
-      updateTable(datass);
-    } else {
-      element.classList.remove("triangle-filter-up");
-      element.classList.add("triangle-filter-down");
-      {% if datas2 %}
-      datass = {{ datas2 | tojson }};
-      {% else %}
-      datass = [];
-      {% endif %}
-      updateTable(datass);
-    }
-  }
-
-  function updateTable(datass) {
-    var tableBody = `
-      <tr>
-        <th>Inicio da Viagem<a href="#" class="triangle-filter-down" onclick="handleFilterClick(this, 'down')"></a></th>
-        <th>Final da Viagem<a href="#" class="triangle-filter-up" onclick="handleFilterClick(this, 'up')"></a></th>
-        <th>Visualizar mapa</th>
-      </tr>`;
-
-    for (var i = 0; i < datass.length; i++) {
-      var data1 = datass[i][0];
-      var data2 = datass[i][1];
-
-      tableBody += `
-        <tr>
-          <td>${data1}</td>
-          <td>${data2}</td>
-          <td>
-            <form action="/map" method="POST" class="form-inline">
-              <input type="hidden" name="assetid" value="{{ selected_assetid }}">
-              <input type="hidden" name="data_selecionada" value="{{ selected_data }}">
-              <input type="hidden" name="data1" value="${data1}">
-              <input type="hidden" name="data2" value="${data2}">
-              <button id="map" type="submit" class="btn btn-warning">showmap</button>
-            </form>
-          </td>
-        </tr>
-      `;
-    }
-
-    viagemTable.innerHTML = tableBody;
-  }
-</script>
 
 
 
-        
-        
+
+
+
+
+
+
+
+
+
+
+
+
+
+        <h2>Selecione a viagem</h2>
+        <table class="table table-bordered table-hover" >
+            <tr>
+              <th>Inicio da Viagem</th>
+              <th>Final da Viagem</th>
+            </tr>
+            {% for data in datass %}
+            {% set data1, data2 = data %}
+            <tr>
+              <td>{{ data1 }}</td>
+              <td>{{ data2 }}</td>
+                    
+              <td>
+                <form action="/map" method="POST" class="form-inline">
+                <input type="hidden" name="assetid" value="{{ selected_assetid }}">
+                <input type="hidden" name="data_selecionada" value="{{ selected_data }}">
+                
+                  <input type="hidden" name="data1" value="{{ data1}}">
+                  <input type="hidden" name="data2" value="{{ data2}}">
+                  <button type="submit" class="btn btn-outline-danger">showmap</button>
+                </form>
+              </td>
+            </tr>
+            {% endfor %}
+          </table>
+          
           {% if message %}
           
           <div class="alert alert-danger" role="alert">
@@ -465,6 +360,9 @@
             <form action="/load_rangedata" method="POST" class="form-inline">
             <input type="hidden" name="assetid" value="{{ selected_assetid }}">
             <input type="hidden" name="erro">
+            {% for obj in timestamp %}
+            <h5>{{ obj }}</h5>
+            {%endfor%}
             <button type="submit" class="btn btn-outline-danger">erro</button>
           </div>
           
@@ -500,7 +398,7 @@
                     <input type="hidden" name="lat" value="{{ lat}}">
                     <input type="hidden" name="long" value="{{ long}}">
                     
-                    <button type="submit" class="btn btn-danger">showmap</button>
+                    <button type="submit" class="btn btn-outline-danger">showmap</button>
                   </form>
                 </td>
               </tr>
@@ -508,7 +406,9 @@
             </table>
             {%endif%}
         
-       
+        
+        
+        
         
         
         

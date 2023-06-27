@@ -7,6 +7,18 @@ from IPython.display import HTML
 import math
 import pytz
 from datetime import datetime, timedelta
+#from dotenv import load_dotenv
+import os
+# Obtém o valor da variável de ambiente API_KEY
+#aws_access_key_id = os.getenv('aws_access_key_id')
+#aws_secret_access_key = os.getenv('aws_secret_access_key')
+#aws_region = os.getenv('aws_region')
+# Carrega as variáveis de ambiente do arquivo .env
+#load_dotenv()
+# Configuração das credenciais da AWS
+aws_access_key_id = 'AKIATJNIJV2Q6XKQXK52'
+aws_secret_access_key = '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'
+aws_region = 'us-east-1'
 dts = []
 def obter_datas_entre(data_inicial, data_final):
     datas = []
@@ -66,14 +78,12 @@ def adicionar_tres_horas(hora):
 
 app = Flask(__name__)
 
-# Configuração das credenciais da AWS
-aws_access_key_id = 'AKIATJNIJV2QSZW6BUTB'
-aws_secret_access_key = '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'
-aws_region = 'us-east-1'
+
+
 
 # Configura a região da sessão do cliente boto3
-boto3.setup_default_session(aws_access_key_id=aws_access_key_id,
-                            aws_secret_access_key=aws_secret_access_key,
+boto3.setup_default_session(aws_access_key_id= aws_access_key_id,
+                            aws_secret_access_key= aws_secret_access_key,
                             region_name=aws_region)
 
 # Executa a consulta no Athena
@@ -81,8 +91,7 @@ query = '''select * from ita_mix.trip where assetid in('1085761243725201408','13
 
 # Query retorna como um DataFrame
 df = wr.athena.read_sql_query(
-    query, database='ita_mix', s3_output='s3://ita-athena-queue/py/'
-)
+    query, database='ita_mix')
 
 #df.dropna(subset=['latitude_trunc', 'longitude_trunc'], inplace=True)
 #df['timestamp'] = df['timestamp'].apply(
@@ -100,6 +109,7 @@ def index():
 @app.route('/load_rangedata', methods=['POST'])
 def load_rangedata():
         global dts
+        dts = []
         assetid = request.form['assetid']
         dff = df[df['assetid'] == assetid]
         inicio = dff['tripstart'].min()   
@@ -118,6 +128,7 @@ def load_rangedata():
             for datas in data_formatada2:
                 if data == datas:
                     dts.append(data)
+        
         dts = list(set(dts))
         dts = sorted(dts)
         return render_template('index.html', fim = fim, inicio = inicio, assetids=df['assetid'].unique().tolist(), dts=dts, selected_assetid=assetid, assetid=assetid)
@@ -127,8 +138,8 @@ def load_data():
         global dts
         # Obtém o assetid selecionado no dropdown
         assetid = request.form['assetid']
-        datass = request.form['sdata']
-        req = request.form['sdata']
+        datass = request.form['data_selecionada']
+        req = request.form['data_selecionada']
         # Filtra o DataFrame pelo assetid selecionado
         asset_trips = df[df['assetid'] == assetid]
         datainicio = asset_trips['tripstart'].unique().tolist()
@@ -162,7 +173,22 @@ def load_data():
                 if data_inicio == data2:
                     datafim_filtrada.append(data)
      
-        datas2 = list(zip(datainicio_filtrada, datafim_filtrada))
+        #datas2 = list(zip(datainicio_filtrada, datafim_filtrada))
+        # Convertendo as strings de datas em objetos datetime
+        datas1 = [datetime.strptime(data, '%Y-%m-%d %H:%M:%S') for data in datainicio_filtrada]
+        datas2 = [datetime.strptime(data, '%Y-%m-%d %H:%M:%S') for data in datafim_filtrada]
+
+        # Organizando as duas listas da data mais recente para a mais antiga
+        datas1_recente_ate_antiga = sorted(datas1, reverse=True)
+        datas2_recente_ate_antiga = sorted(datas2, reverse=True)
+
+        # Organizando as duas listas da mais antiga para a mais recente
+        datas1_antiga_ate_recente = sorted(datas1)
+        datas2_antiga_ate_recente = sorted(datas2) 
+
+        # Zip das duas listas organizadas
+        datas_organizadas1 = list(zip(datas1_recente_ate_antiga, datas2_recente_ate_antiga))
+        datas_organizadas2 = list(zip(datas1_antiga_ate_recente, datas2_antiga_ate_recente))
         
         # Converter as colunas para o tipo datetime
         #df1['tripstart'] = pd.to_datetime(df1['tripstart'])
@@ -170,7 +196,7 @@ def load_data():
         # Encontrar a data mais antiga do tripstart e a data mais recente do tripend
         #datainicio = df1['tripstart'].min()
         #print(datainicio)
-        return render_template('index.html', assetids=df['assetid'].unique().tolist(),datass= datas2,dts = dts, selected_data = req, selected_assetid=assetid)
+        return render_template('index.html', assetids=df['assetid'].unique().tolist(),datas1= datas_organizadas1, datas2= datas_organizadas2,dts = dts, selected_data = req, selected_assetid=assetid)
 
 
 @app.route('/load_trips', methods=['POST'])
@@ -212,21 +238,20 @@ def show_map():
     tripid = dff['tripid']
 
     
-    query1 = f'''SELECT * FROM ita_mix.vw_latlong 
+    query1 = f'''SELECT * FROM ita_mix.vw_latlong  
                 WHERE (timestamp >= '{data_formatada3}') 
                 AND (timestamp <= '{data_formatada4}')
                 and assetid like '{assetid}'
-                order by timestamp'''
+                order by timestamp ASC'''
     # Query retorna como um DataFrame
     trip_data = wr.athena.read_sql_query(
-        query1, database='ita_mix', s3_output='s3://ita-athena-queue/py/'
-    )
+        query1, database='ita_mix')
    
     # Filtra o DataFrame pelo assetid e tripid selecionados
     #trip_data = df[(df['assetid'] == assetid) & (df['tripid'] == tripid) & df]
 
     # Verifica se há dados disponíveis após a filtragem
-    if not trip_data.empty:
+    if not  trip_data.empty:
         # Cria o mapa
 
         lat = trip_data['latitude_trunc'].iloc[0]
@@ -286,7 +311,7 @@ def show_map():
             if i % 50 == 0:  # Verifica se i é divisível por 50
                 latA = trip_data['latitude_trunc'].iloc[i]  # Latitude do ponto A
                 longA = trip_data['longitude_trunc'].iloc[i]  # Longitude do ponto A
-                heading = heading = trip_data['heading'].iloc[i]  # Ângulo de direção
+                heading = trip_data['heading'].iloc[i]  # Ângulo de direção
 
                 # Calcula a latitude e longitude do ponto B com base na escala e no ângulo de direção
                 latB = lenght_scale * math.cos(math.radians(heading)) + latA
@@ -341,12 +366,12 @@ def show_map():
 
         
     
-    
+        return map._repr_html_()
     
     
     
     else:
-        return render_template('index.html',erro='ok',selected_assetid = assetid,  message='No data available for the selected trip')
+        return render_template('index.html',timestamp= trip_data['timestamp'],erro='ok',selected_assetid = assetid,  message='No data available for the selected trip')
 
 
 if __name__ == '__main__':
