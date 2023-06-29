@@ -20,6 +20,9 @@ aws_access_key_id = 'AKIATJNIJV2Q6XKQXK52'
 aws_secret_access_key = '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'
 aws_region = 'us-east-1'
 dts = []
+dfglobal = None
+nomes =[]
+df = None
 def obter_datas_entre(data_inicial, data_final):
     datas = []
     data_atual = datetime.strptime(data_inicial, "%Y-%m-%d")
@@ -85,13 +88,10 @@ app = Flask(__name__)
 boto3.setup_default_session(aws_access_key_id= aws_access_key_id,
                             aws_secret_access_key= aws_secret_access_key,
                             region_name=aws_region)
-
+name = 'enel'
 # Executa a consulta no Athena
-query = '''select * from ita_mix.trip where assetid in('1085761243725201408','1395639860612653056')'''
 
-# Query retorna como um DataFrame
-df = wr.athena.read_sql_query(
-    query, database='ita_mix')
+
 
 #df.dropna(subset=['latitude_trunc', 'longitude_trunc'], inplace=True)
 #df['timestamp'] = df['timestamp'].apply(
@@ -102,24 +102,121 @@ df = wr.athena.read_sql_query(
 
 @app.route('/')
 def index():
+    global nomes
+ 
+    nomes = [
+    'enel',
+    'jaime câmara',
+    'aqualis',
+    'car sharing',
+    'carros por assinatura',
+    'chaves identificação',
+    'coming',
+    'elcop',
+    'comurg',
+    'prefeitura de goiânia',
+    'estoque ita',
+    'express reforma',
+    'hemolabor',
+    'saneago',
+    'csc',
+    'manutenção',
+    'cahves ita geral',
+    'last mile',
+    'itapar',
+    'líder pets',
+    'pdca engenharia',
+    'triunfo concebra',
+    'urban tecnologia',
+    'Ultra Solar',
+    'Tribunal de Contas',
+    'Tencel Engenharia',
+    'Teclog Fleet',
+    'Suporte Sondagens Investigações',
+    'Serviços - ADM',
+    'SEPLAD/DF',
+    'Rotagyn',
+    'Redemob Consorcio',
+    'Prospec Cell',
+    'PRIMETEK',
+    'Palme Vendas',
+    'Outlet Primaveira',
+    'Moriá Prestação de Serviços',
+    'Líder Fomento Comercial',
+    'IPEM - Instituto de Pesos e Medidas',
+    'HSI Serviços e Comércio de Pneus',
+    'HP Transportes Coletivos',
+    'GOINFRA - Agência Goiana De Infr. E Transportes',
+    'Goiás Rendering',
+    'Goiás Minas|ITALAC',
+    'Geogis Geotecnologia Ltda',
+    'GAV - Pirenópolis Empr. Imob',
+    'Franca e Pereira Ltda',
+    'FAPEG - Fundação De Amparo Pesq. Est. Goiás',
+    'Enebra',
+    'Enapa Empresa Nac. Pavimentação',
+    'DS Facility Ltda',
+    'Dolp Engenharia',
+    'DEC Agro Comercio e representações LTDA',
+    'D A Tecnologia e Serviços',
+    'Confrex Tec. Veicular',
+    'Concebra',
+    'Bold Ent',
+    'Barão Especialidades',
+    'Ambiente Consultoria',
+    'Agromais Agropecuária'
+]
+
+    return render_template('index.html', nomes=nomes)
+
+
+@app.route('/select_asset', methods=['POST'])
+def select_asset(): 
+    global nomes
+    global df
+    nome = request.form['client']
+    query = f'''SELECT asset.assetid,
+    asset.siteid,
+    asset.assetimageurl,
+    site.sitename
+    FROM "ita_mix"."asset_to_garage"  as asset
+    join "ita_mix"."sitegroup"  as site on asset.siteid = site.siteid 
+    WHERE asset.userstate like 'Available'
+    and (LOWER(mae_0) LIKE LOWER('%{nome}%')
+    OR LOWER(mae_1) LIKE LOWER('%{nome}%')
+    OR LOWER(mae_2) LIKE LOWER('%{nome}%')
+    OR LOWER(mae_3) LIKE LOWER('%{nome}%')
+    OR LOWER(mae_4) LIKE LOWER('%{nome}%')
+    OR LOWER(mae_5) LIKE LOWER('%{nome}%')
+    OR LOWER(mae_6) LIKE LOWER('%{nome}%'))'''
+    # Query retorna como um DataFrame
+    df = wr.athena.read_sql_query(
+    query, database='ita_mix')
+    
     # Obtém a lista de assetids únicos
     assetids = df['assetid'].unique().tolist()
-    return render_template('index.html', assetids=assetids)
-
+    return render_template('index.html', assetids=assetids, selected_nome=nome, nomes=nomes)
 @app.route('/load_rangedata', methods=['POST'])
 def load_rangedata():
+        global nomes
+        global df
+        global dfglobal
         global dts
         dts = []
         assetid = request.form['assetid']
-        dff = df[df['assetid'] == assetid]
-        inicio = dff['tripstart'].min()   
-        datainicio = dff['tripstart'].unique().tolist()
+        query1 = f'''select * from ita_mix.trip where assetid in('{assetid}')'''
+        df1 = wr.athena.read_sql_query(
+        query1, database='ita_mix')
+        dfglobal = df1[df1['assetid'] == assetid]
+        
+        inicio = dfglobal['tripstart'].min()   
+        datainicio = dfglobal['tripstart'].unique().tolist()
         data_formatada2 = []  # Lista para armazenar as datas formatadas
 
         for data in datainicio:
             # Aplica a função de conversão de fuso horário para cada data
             data_formatada2.append(converter_fuso_horario_semsegundo(data))          
-        fim = dff['tripend'].max()
+        fim = dfglobal['tripend'].max()
         fim = converter_fuso_horario_semsegundo(fim)
         inicio = converter_fuso_horario_semsegundo(inicio)
         dt=obter_datas_entre(inicio,fim)
@@ -135,13 +232,16 @@ def load_rangedata():
 
 @app.route('/load_data', methods=['POST'])
 def load_data():
+        global nomes
+        global df
+        global dfglobal
         global dts
         # Obtém o assetid selecionado no dropdown
         assetid = request.form['assetid']
         datass = request.form['data_selecionada']
         req = request.form['data_selecionada']
         # Filtra o DataFrame pelo assetid selecionado
-        asset_trips = df[df['assetid'] == assetid]
+        asset_trips = dfglobal[dfglobal['assetid'] == assetid]
         datainicio = asset_trips['tripstart'].unique().tolist()
         datafim = asset_trips['tripend'].unique().tolist()
         data_formatada = []  # Lista para armazenar as datas formatadas
@@ -224,7 +324,7 @@ def load_trips():
 
 @app.route('/map', methods=['POST'])
 def show_map():
-    entrada ="ok"
+
     # Obtém o assetid, tripid e a data selecionados no dropdown
     assetid = request.form['assetid']
     datainicial = request.form['data1']
@@ -233,19 +333,15 @@ def show_map():
     data_formatada2 = datetime.strptime(datafinal, '%Y-%m-%d %H:%M:%S').strftime('%Y-%m-%dT%H:%M:%SZ')
     data_formatada3 = adicionar_tres_horas(data_formatada1)
     data_formatada4 = adicionar_tres_horas(data_formatada2)
-    #tripid = request.form['tripid']
-    dff = df[df['assetid'] == assetid]
-    tripid = dff['tripid']
 
-    
-    query1 = f'''SELECT * FROM ita_mix.vw_latlong  
+    query2 = f'''SELECT * FROM ita_mix.vw_latlong  
                 WHERE (timestamp >= '{data_formatada3}') 
                 AND (timestamp <= '{data_formatada4}')
                 and assetid like '{assetid}'
                 order by timestamp ASC'''
     # Query retorna como um DataFrame
     trip_data = wr.athena.read_sql_query(
-        query1, database='ita_mix')
+        query2, database='ita_mix')
    
     # Filtra o DataFrame pelo assetid e tripid selecionados
     #trip_data = df[(df['assetid'] == assetid) & (df['tripid'] == tripid) & df]

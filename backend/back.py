@@ -35,8 +35,8 @@ def converter_fuso_horario(data_inicio):
     return dataformatada
 
 # Configuração das credenciais da AWS
-aws_access_key_id = 'AKIATJNIJV2QSZW6BUTB'
-aws_secret_access_key = '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'
+aws_access_key_id = 'AKIATJNIJV2Q6XKQXK52'
+aws_secret_access_key = '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'
 aws_region = 'us-east-1'
 
 # Configura a região da sessão do cliente boto3
@@ -49,7 +49,7 @@ query = '''SELECT * FROM "ita_mix"."trip" where assetid like '108576124372520140
 
 # Query retorna como um DataFrame
 df = wr.athena.read_sql_query(
-    query, database='ita_mix', s3_output='s3://ita-athena-queue/py/'
+    query, database='ita_mix'
 )
 
 

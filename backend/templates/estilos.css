@@ -1,0 +1,112 @@
+.item-calendario:has(.available):hover{
+    background-color: purple;
+    cursor: pointer;
+  }
+
+ 
+.sumir {
+opacity: 0.1; /* Define a opacidade para deixar o botão apagado */
+pointer-events: none; /* Impede que o botão seja clicado */
+cursor: not-allowed;
+}
+
+  
+.available {
+color: black;
+font-weight: bold;
+cursor: pointer;
+}
+.unavailable {
+color: #5E5E5E;
+opacity: 0.4;
+cursor: not-allowed;
+}
+.item-calendario:not(:has(.available)) {
+cursor: not-allowed;
+}
+
+#calendario td {
+border: 1px solid black;
+padding: 5px;
+}
+
+#calendario th {
+border: 1px solid black;
+padding: 5px;
+}
+table {
+border-collapse: collapse;
+}
+
+#calendario td, #calendario th {
+border: 1px solid black;
+padding: 5px;
+}
+thead th {
+border: 1px solid black;
+padding: 5px;
+}
+
+#mes_atual {
+text-align: center;
+font-weight: bold;
+font-family: 'Playfair Display', serif;
+font-size: 25px;
+}
+#botao_mes_anterior{
+
+}
+.sticky-buttons #botao_proximo_mes{
+background-color: black;
+float: right;
+margin: 0;
+
+}
+.sticky-buttons #botao_mes_anterior{
+background-color: black;
+float: left;
+margin 0;
+
+}
+.sticky-buttons{
+background-color: #5E5E5E;
+}
+thead #prox{
+color:white;
+}
+thead #ant{
+color:white;
+}
+table th{
+    background-color: #5E5E5E;
+   }
+    #viagemTable th {
+        color: white;
+        background-color: black;
+        padding-left: 110px;
+        padding-right: 90px; 
+    }
+    th .triangle-filter-down,
+    th .triangle-filter-up {
+        position: absolute;
+        padding-top: 15px;
+    }
+    th .triangle-filter-down {
+        width: 10;
+        height: 0;
+        border-left: 15px solid transparent;
+        border-right: 0px solid transparent;
+        border-bottom: 10px solid #FFCC00;
+      }
+      th .triangle-filter-up {
+        width: 10;
+        height: 0;
+        border-left: 15px solid transparent;
+        border-right: 20 px solid transparent;
+        border-top: 10px solid #FFCC00;
+      }
+      table td{
+        text-align: center;
+        color: black;
+        font-weight: bold;
+      }

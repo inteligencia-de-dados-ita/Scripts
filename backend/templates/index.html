@@ -5,10 +5,37 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
 </head>
 <body>
-    <div class="container mt-5">
+<div class="container mt-5">
+    <h2>Selecione o cliente</h2>
+    <form action="/select_asset" method="POST" class="form-inline">
+        <div class="form-group">
+            <select  name="client" class="form-control">
+                {% for nome in nomes %}
+                    {% if selected_cliente == nome %}
+                        <option value="{{ nome }}" selected>{{ nome }}</option>
+                    {% else %}
+                        <option value="{{ nome }}">{{ nome }}</option>
+                    {% endif %}
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit" class="btn btn-dark">Carregar Veículo</button>
+    </form>
+
+
+
+
+
+
+
+
+
+    
         <h2>Selecione o Veículo</h2>
         <form action="/load_rangedata" method="POST" class="form-inline">
             <div class="form-group">
+                <input type="hidden" name="nomes" value="{{ selected_nome }}">
+                <h5> {{ selected_nome }} </h5>
                 <select name="assetid" class="form-control">
                     {% for assetid in assetids %}
                         {% if selected_assetid == assetid %}
@@ -111,6 +138,7 @@
             <form id="calendarioForm" action="load_data" method="post">
               <input type="hidden" name="data_selecionada" id="data_selecionada">
               <input type="hidden" name="assetid" value="{{ selected_assetid }}">
+              
               <table>
                 <thead>
                   <tr>
@@ -462,11 +490,12 @@
           <div class="alert alert-danger" role="alert">
             
             <h5>{{ message }}</h5>
+            </div>
             <form action="/load_rangedata" method="POST" class="form-inline">
             <input type="hidden" name="assetid" value="{{ selected_assetid }}">
             <input type="hidden" name="erro">
-            <button type="submit" class="btn btn-outline-danger">erro</button>
-          </div>
+            <button type="submit" class="btn btn-primary">voltar</button>
+          
           
           {%endif%}
         
