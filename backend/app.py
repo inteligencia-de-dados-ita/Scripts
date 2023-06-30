@@ -16,8 +16,8 @@ import os
 # Carrega as variáveis de ambiente do arquivo .env
 #load_dotenv()
 # Configuração das credenciais da AWS
-aws_access_key_id = 'AKIATJNIJV2Q6XKQXK52'
-aws_secret_access_key = '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'
+aws_access_key_id = 'ID'
+aws_secret_access_key = 'KEY'
 aws_region = 'us-east-1'
 dts = []
 dfglobal = None
