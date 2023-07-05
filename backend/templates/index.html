@@ -4,14 +4,88 @@
     <title>Asset Trips Map</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
 </head>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://getbootstrap.com/docs/5.3/assets/css/docs.css" rel="stylesheet">
+<title>Bootstrap Example</title>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js">
+</script> 
+ <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
+<style>
+  .navbar-brand{
+    color:yellow;
+    font-weight:bold;
+  }
+  .container-fluid {
+    margin-top: -9px;
+    background-color: black;
+    background-image: url('1633442337284.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+  }
+  .container mt-5 img {
+
+  }
+  
+.navbar-toggler{
+  background-color: yellow;
+
+}
+
+</style>
+<nav class="navbar bg-body-tertiary fixed-top">
+  <div class="container-fluid">
+    
+
+    <a class="navbar-brand" href="#">Plotagem mapas</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasNavbar" aria-labelledby="offcanvasNavbarLabel">
+      <div class="offcanvas-header">
+        <h5 class="offcanvas-title" id="offcanvasNavbarLabel">Offcanvas</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+      </div>
+      <div class="offcanvas-body">
+        <ul class="navbar-nav justify-content-end flex-grow-1 pe-3">
+          <li class="nav-item">
+            <a class="nav-link active" aria-current="page" href="#">Home</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#">Link</a>
+          </li>
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              Dropdown
+            </a>
+            <ul class="dropdown-menu">
+              <li><a class="dropdown-item" href="#">Action</a></li>
+              <li><a class="dropdown-item" href="#">Another action</a></li>
+              <li>
+                <hr class="dropdown-divider">
+              </li>
+              <li><a class="dropdown-item" href="#">Something else here</a></li>
+            </ul>
+          </li>
+        </ul>
+        <form class="d-flex mt-3" role="search">
+          <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
+          <button class="btn btn-outline-success" type="submit">Search</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</nav>
 <body>
+<div id="carregamento">
 <div class="container mt-5">
+    
     <h2>Selecione o cliente</h2>
-    <form action="/select_asset" method="POST" class="form-inline">
+    <form id="clientes" action="/select_asset" method="POST" class="form-inline">
         <div class="form-group">
             <select  name="client" class="form-control">
                 {% for nome in nomes %}
-                    {% if selected_cliente == nome %}
+                    {% if selected_nome == nome %}
                         <option value="{{ nome }}" selected>{{ nome }}</option>
                     {% else %}
                         <option value="{{ nome }}">{{ nome }}</option>
@@ -19,45 +93,129 @@
                 {% endfor %}
             </select>
         </div>
-        <button type="submit" class="btn btn-dark">Carregar Veículo</button>
+        <button type="submit" id="cliente" class="btn btn-dark">Carregar Cliente</button>
+        <div id="loadingSpinner"></div>
+
     </form>
+<style>
+    body pol {
+
+    background-image: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7));
+    background-blur: 10px;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+   }
+  
+    #loadingSpinner {
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #3498db;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    animation: spin 2s linear infinite;
+    display: none; /* Esconder inicialmente */
+  }
+  
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  </style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var button = document.getElementById('cliente');
+        var spinner = document.getElementById('loadingSpinner');
+        var form = document.getElementById('clientes');
+      
+        form.addEventListener('submit', function(event) {
+          event.preventDefault(); // Impedir o envio padrão do formulário
+      
+          button.disabled = true; // Desabilitar o botão
+          spinner.style.display = 'inline-block'; // Exibir a bolinha de carregamento
+      
+          // Simular uma carga por 3 segundos (você pode substituir isso pela sua lógica de envio de formulário)
+          setTimeout(function() {
+            form.submit(); // Enviar o formulário manualmente após o término da simulação
+          }, 3000);
+        });
+      });
+      
+  </script>
 
 
 
 
 
-
-
-
+  
 
     
         <h2>Selecione o Veículo</h2>
-        <form action="/load_rangedata" method="POST" class="form-inline">
+        <form id="assets" action="/load_rangedata" method="POST" class="form-inline">
             <div class="form-group">
-                <input type="hidden" name="nomes" value="{{ selected_nome }}">
-                <h5> {{ selected_nome }} </h5>
+                <input type="hidden" name="client" value="{{ selected_nome }}">
+                   
                 <select name="assetid" class="form-control">
-                    {% for assetid in assetids %}
+                    {% for obj in descricao %}
+                    {% set placa, assetid = obj %}
+                         
                         {% if selected_assetid == assetid %}
-                            <option value="{{ assetid }}" selected>{{ assetid }}</option>
+                            <option value="{{ assetid }}" selected>{{ placa }}</option>
                         {% else %}
-                            <option value="{{ assetid }}">{{ assetid }}</option>
+                            <option value="{{ assetid }}">{{ placa}}</option>
                         {% endif %}
                     {% endfor %}
-                </select>
+                </select> 
             </div>
-            <button type="submit" class="btn btn-dark">Carregar Veículo</button>
+            <button type="submit" id="asset" class="btn btn-dark">Carregar Veículo</button>
+            <div id="spiner2"></div>
         </form>
+        <style>
+            #spiner2 {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 2s linear infinite;
+            display: none; /* Esconder inicialmente */
+          }
           
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+          </style>
+        
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                var button = document.getElementById('asset');
+                var spinner = document.getElementById('spiner2');
+                var form = document.getElementById('assets');
+              
+                form.addEventListener('submit', function(event) {
+                  event.preventDefault(); // Impedir o envio padrão do formulário
+              
+                  button.disabled = true; // Desabilitar o botão
+                  spinner.style.display = 'inline-block'; // Exibir a bolinha de carregamento
+              
+                  // Simular uma carga por 3 segundos (você pode substituir isso pela sua lógica de envio de formulário)
+                  setTimeout(function() {
+                    form.submit(); // Enviar o formulário manualmente após o término da simulação
+                  }, 3000);
+                });
+              });
+              
+          </script>
         <head>
             <title>Calendário com datas disponíveis</title>
             <style>
                 .item-calendario:has(.available):hover{
-                    background-color: purple;
+                    background-color: yellow;
                     cursor: pointer;
                   }
-               
-                 
+           
                 .sumir {
                 opacity: 0.1; /* Define a opacidade para deixar o botão apagado */
                 pointer-events: none; /* Impede que o botão seja clicado */
@@ -66,12 +224,12 @@
             
                   
               .available {
-                color: black;
+               
                 font-weight: bold;
                 cursor: pointer;
               }
               .unavailable {
-                color: #5E5E5E;
+                color: #green;
                 opacity: 0.4;
                 cursor: not-allowed;
               }
@@ -80,12 +238,13 @@
               }
               
               #calendario td {
-                border: 1px solid black;
+                border: 1px solid yellow;
                 padding: 5px;
+               
               }
               
               #calendario th {
-                border: 1px solid black;
+                border: 1px solid yellow;
                 padding: 5px;
               }
               table {
@@ -93,52 +252,57 @@
               }
               
               #calendario td, #calendario th {
-                border: 1px solid black;
+                border: 1px solid yellow;
                 padding: 5px;
               }
               thead th {
-                border: 1px solid black;
+                color:yellow;
+                border: 1px solid yellow;
                 padding: 5px;
               }
              
               #mes_atual {
                 text-align: center;
                 font-weight: bold;
+                color:yellow;
                 font-family: 'Playfair Display', serif;
                 font-size: 25px;
               }
-              #botao_mes_anterior{
-
-              }
+ 
               .sticky-buttons #botao_proximo_mes{
-                background-color: black;
+                background-color: yellow;
                 float: right;
                 margin: 0;
 
               }
               .sticky-buttons #botao_mes_anterior{
-                background-color: black;
+                background-color: yellow;
+                
                 float: left;
                 margin 0;
                 
               }
               .sticky-buttons{
-                background-color: #5E5E5E;
+                background-color: #yellow;
+             
               }
               thead #prox{
-                color:white;
+                color:black;
               }
               thead #ant{
-                color:white;
+                color:black;
               }
             </style>
           </head>
           <body>
+           
             <h2>Selecione a Data Desejada</h2>
             <form id="calendarioForm" action="load_data" method="post">
               <input type="hidden" name="data_selecionada" id="data_selecionada">
               <input type="hidden" name="assetid" value="{{ selected_assetid }}">
-              
+              <input type="hidden" name="client" value="{{ selected_nome }}">
+
+             
               <table>
                 <thead>
                   <tr>
@@ -190,6 +354,7 @@
                 // Datas disponíveis da lista em Python (no formato "yyyy-mm-dd")
                 {% if dts %}
                 var disponiveis = {{ dts | tojson }};
+               
                 {% else %}
                 var disponiveis = [];
                 {% endif %}
@@ -198,23 +363,29 @@
                 function filtrarDatasDisponiveis() {
                   var datasFiltradas = [];
                   var dataAtual = new Date();
-                  var ultimoDia = new Date();
-              
-                  dataAtual.setDate(dataAtual.getDate() - 35); // Subtrai 30 dias da data atual
-              
-                  while (dataAtual <= ultimoDia) {
+                
+                  // Subtrai 30 dias da data atual
+                  dataAtual.setDate(dataAtual.getDate() - 30);
+                
+                  // Itera sobre as datas dos últimos 30 dias
+                  while (dataAtual <= new Date()) {
+               
                     var dataFormatada = dataAtual.toISOString().slice(0, 10);
-              
+                    
+                
+                    // Verifica se a data está presente na lista 'dts'
                     if (disponiveis.includes(dataFormatada)) {
                       datasFiltradas.push(dataFormatada);
                     }
-              
+                
+                    // Avança para o próximo dia
                     dataAtual.setDate(dataAtual.getDate() + 1);
                   }
-              
+                
                   return datasFiltradas;
                 }
-              
+                
+            
                 // Função para gerar o calendário
                 function gerarCalendario(dataAtual) {
                   var calendario = document.getElementById("calendario");
@@ -346,8 +517,7 @@
               </script>
               
           </body>
-          
-
+        
           <h2>Selecione a viagem</h2>
 <table id="viagemTable" class="table-light table-bordered table-hover">
   <tr>
@@ -362,6 +532,7 @@
     <a href="#" class="triangle-filter-up" onclick="handleFilterClick(this, 'up')">
 </a></th>
     <th>Visualizar mapa</th>
+    <th id="vazio" style="display: none;"></th>
   </tr>
   {% for data in datas1 %}
   {% set data1, data2 = data %}
@@ -370,21 +541,71 @@
     <td>{{ data1 }}</td>
     <td>{{ data2 }}</td>
     <td>
-      <form action="/map" method="POST" class="form-inline">
+      <form id="maps" action="/map" method="POST" class="form-inline">
+        <input type="hidden" name="client" value="{{ selected_nome }}">
         <input type="hidden" name="assetid" value="{{ selected_assetid }}">
         <input type="hidden" name="data_selecionada" value="{{ selected_data }}">
         <input type="hidden" name="data1" value="{{ data1 }}">
         <input type="hidden" name="data2" value="{{ data2 }}">
-        <button type="submit" class="btn btn-warning">showmap</button>
+        <h6 id="h5car_{{ data1 }}_{{ data2 }}" style="display: none;">carregando...</h6>
+        <button type="submit" id="car_{{ data1 }}_{{ data2 }}" onclick="moveCar('{{ data1 }}', '{{ data2 }}')" class="btn btn-warning">showmap</button>
       </form>
     </td>
+    <td id="carregarcar_{{ data1 }}_{{ data2 }}" style="display: none;">
+      <div class="car-container"id="car-container_{{ data1 }}_{{ data2 }}" style="display: none;">
+        🚗
+      </div>
+    </td>
   </tr>
-  {% endfor %}
+{% endfor %}
+
+
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    var forms = document.getElementsByClassName('maps-form');
+  
+    Array.from(forms).forEach(function(form) {
+      var button = form.querySelector('.car-btn');
+      var spinner = form.querySelector('.car-container');
+  
+      form.addEventListener('submit', function(event) {
+        event.preventDefault(); // Impedir o envio padrão do formulário
+  
+        button.disabled = true; // Desabilitar o botão
+        spinner.style.display = 'inline-block'; // Exibir a bolinha de carregamento
+  
+        // Simular uma carga por 3 segundos (você pode substituir isso pela sua lógica de envio de formulário)
+        setTimeout(function() {
+          form.submit(); // Enviar o formulário manualmente após o término da simulação
+        }, 3000);
+      });
+    });
+  });
+  
+  </script>
 </table>
 
 <style>
+  
+  #carregamento{
+   
+  }
+
+  
+  @keyframes car-move {
+    0% {
+      left: 0;
+    }
+    50% {
+      left: calc(100% - 100px);
+    }
+    100% {
+      left: 0;
+    }
+  }
    table th{
-    background-color: #5E5E5E;
+    background-color: black;
    }
     #viagemTable th {
         color: white;
@@ -417,12 +638,31 @@
         font-weight: bold;
       }
      
-
-     
+  
       
 </style>
 
 <script>
+  function moveCar(data1, data2) {
+    var h5 = document.getElementById("h5car_" + data1 + "_" + data2);
+    var carContainer = document.getElementById("car-container_" + data1 + "_" + data2);
+    var buttonn = document.getElementById('car_' + data1 + "_" + data2);
+    var td = document.getElementById('carregarcar_' + data1 + "_" + data2);
+    carContainer.style.position = "absolute";
+    carContainer.style.left = "50%";
+    carContainer.style.top = "50%";
+    carContainer.style.transform = "translate(-50%, -50%)";
+    carContainer.style.width = "100px";
+    carContainer.style.animation = "car-move 4s linear infinite";
+    
+    td.style.position = "relative";
+    td.style.width = "100%";
+    carContainer.style.display = "block";
+    buttonn.style.display = "none";
+    td.style.display = "inline-block";
+    h5.style.display = "inline-block";
+  }
+  
   function handleFilterClick(element, filter) {
     var viagemTable = document.getElementById("viagemTable");
     var datass;
@@ -470,17 +710,17 @@
               <input type="hidden" name="data_selecionada" value="{{ selected_data }}">
               <input type="hidden" name="data1" value="${data1}">
               <input type="hidden" name="data2" value="${data2}">
-              <button id="map" type="submit" class="btn btn-warning">showmap</button>
+              <button id="map" type="submit"  class="btn btn-warning">showmap</button>              
             </form>
           </td>
         </tr>
       `;
     }
-
+   
     viagemTable.innerHTML = tableBody;
   }
-</script>
 
+</script>
 
 
         
@@ -492,10 +732,13 @@
             <h5>{{ message }}</h5>
             </div>
             <form action="/load_rangedata" method="POST" class="form-inline">
+            <input type="hidden" name="client" value="{{ selected_nome }}">
+            <input type="hidden" name="assetid" value="{{ selected_assetid }}">
+            <input type="hidden" name="data_selecionada" value="{{ selected_data }}">
             <input type="hidden" name="assetid" value="{{ selected_assetid }}">
             <input type="hidden" name="erro">
-            <button type="submit" class="btn btn-primary">voltar</button>
-          
+            <button type="submit" class="btn btn-danger">voltar</button>
+            </form>
           
           {%endif%}
         
@@ -570,8 +813,9 @@
         {% endif %}
     </div>
 
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
+  
 
-    
+  </div>
 </body>
+
 </html>
