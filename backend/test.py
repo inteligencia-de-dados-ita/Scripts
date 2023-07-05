@@ -5,9 +5,7 @@ import awswrangler as wr
 
 # --------- Funções para suporte do ETL ---------
 #Variáveis para acesso a AWS
-aws_access_key_id = "AKIATJNIJV2QYWNX5JEL"
-aws_secret_access_key = "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"
-aws_region = 'us-east-1'
+
 
 session = boto3.Session(aws_access_key_id=aws_access_key_id,
                       aws_secret_access_key=aws_secret_access_key,
