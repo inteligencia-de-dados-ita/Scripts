@@ -34,10 +34,7 @@ def converter_fuso_horario(data_inicio):
     # Retorna as datas formatadas
     return dataformatada
 
-# Configuração das credenciais da AWS
-aws_access_key_id = 'AKIATJNIJV2Q6XKQXK52'
-aws_secret_access_key = '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'
-aws_region = 'us-east-1'
+
 
 # Configura a região da sessão do cliente boto3
 boto3.setup_default_session(aws_access_key_id=aws_access_key_id,
