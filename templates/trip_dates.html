@@ -1,0 +1,7 @@
+<label for="trip_date">Selecione a data:</label>
+<select name="trip_date" id="trip_date">
+    <option value="" selected disabled >Escolha uma data</option>
+    {% for date in dates %}
+        <option value="{{ date }}">{{ date }}</option>
+    {% endfor %}
+</select>
